@@ -12,15 +12,6 @@ APP_NAME = "shopscrape"
 DEFAULT_HOME = Path(os.environ.get("SHOPSCRAPE_HOME", Path.home() / ".shopscrape"))
 CONFIG_PATH = Path(os.environ.get("SHOPSCRAPE_CONFIG", DEFAULT_HOME / "config.yml"))
 
-SEED_SITES = [
-    ("bobogears",    "bobogears.com",               "BOBO Gears"),
-    ("fleettrack",   "fleettrack.in",               "Fleettrack"),
-    ("mototorque",   "mototorque.in",               "Moto Torque"),
-    ("grandpitstop", "grandpitstop.com",            "Grand Pitstop"),
-    ("redrooster",   "redroosterperformance.com",   "Red Rooster Performance"),
-    ("motogenius",   "motogeniusstore.com",         "Moto Genius"),
-]
-
 _KEY_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 
 
@@ -107,7 +98,6 @@ class Config:
         if not p.exists():
             cfg = cls(path=p)
             if create:
-                cfg.seed()
                 cfg.save()
             return cfg
 
@@ -135,10 +125,6 @@ class Config:
         self.path.write_text(header + yaml.safe_dump(payload, sort_keys=False, allow_unicode=True),
                              encoding="utf-8")
         return self.path
-
-    def seed(self) -> None:
-        for key, domain, name in SEED_SITES:
-            self.sites[key] = Site(key=key, domain=domain, name=name)
 
     def add(self, domain: str, *, key: str | None = None, name: str = "",
             platform: str = "shopify", **kw) -> Site:

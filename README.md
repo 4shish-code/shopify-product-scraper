@@ -41,23 +41,29 @@ pip install -e .
 
 ---
 
-## Quickstart
+## Quickstart Workflow
 
-### 1. Verify store connectivity
+### 1. Register a store
+Add any public Shopify store domain (auto-detects and validates Shopify compatibility):
+```bash
+./shopctl sites add mystore.com
+```
+
+### 2. Verify store connectivity
 ```bash
 ./shopctl doctor
 ```
 
-### 2. Scrape storefront catalogs
+### 3. Scrape storefront catalogs
 ```bash
-# Scrape a single store
-./shopctl scrape --site bobogears
+# Scrape the newly added store
+./shopctl scrape --site mystore
 
-# Scrape all configured stores
+# Or scrape all registered stores
 ./shopctl scrape all
 ```
 
-### 3. Export to CSV
+### 4. Export to CSV
 
 Export separate CSV files for each store (ready for Shopify import):
 ```bash
@@ -66,7 +72,7 @@ Export separate CSV files for each store (ready for Shopify import):
 
 Export a specific store:
 ```bash
-./shopctl export --site bobogears
+./shopctl export --site mystore
 ```
 
 Files are saved in the `exports/` directory.
@@ -81,24 +87,24 @@ To import into Shopify:
 ### Site Registry (`sites`)
 
 ```bash
-# List registered stores and cached product counts
-./shopctl sites list
-
-# Register a new store (validates Shopify compatibility)
+# Register a new store
 ./shopctl sites add example.com
 
-# Register store with collection-specific targeting
-./shopctl sites add example.com --key example --collection helmets --collection accessories
+# Register store with a custom key and collection-specific targeting
+./shopctl sites add example.com --key mystore --collection jackets --collection accessories
 
-# Inspect collections on a remote store
-./shopctl sites collections bobogears
+# List all registered stores and cached product counts
+./shopctl sites list
+
+# Inspect public collections on a remote store
+./shopctl sites collections mystore
 
 # Update site parameters
-./shopctl sites set bobogears --vendor "Custom Brand" --add-tag imported
-./shopctl sites set mototorque --disable
+./shopctl sites set mystore --vendor "Custom Brand" --add-tag imported
+./shopctl sites set mystore --disable
 
 # Unregister a store
-./shopctl sites remove example.com --purge
+./shopctl sites remove mystore --purge
 ```
 
 ---
@@ -109,10 +115,10 @@ To import into Shopify:
 # Scrape all active stores
 ./shopctl scrape all
 
-# Scrape selected stores
-./shopctl scrape --site fleettrack --site bobogears
+# Scrape selected store
+./shopctl scrape --site mystore
 
-# Test run with sample limit and dry-run mode
+# Test run with sample limit and dry-run mode (does not save to DB)
 ./shopctl scrape all --limit 10 --dry-run
 ```
 
@@ -128,13 +134,13 @@ To import into Shopify:
 #### Price Adjustments & Rounding
 ```bash
 # Apply a 20% markup and round to .99
-./shopctl export --site bobogears --markup 1.20 --round-to 0.99
+./shopctl export --site mystore --markup 1.20 --round-to 0.99
 ```
 
 #### Catalog Filtering
 ```bash
 # Export in-stock products with images for a given vendor
-./shopctl export all --vendor "Bobo" --in-stock --with-images
+./shopctl export all --vendor "BrandName" --in-stock --with-images
 
 # Filter by price bounds and search term
 ./shopctl export all --query "holder" --min-price 500 --max-price 3000
