@@ -1,27 +1,27 @@
-# shopscrape 🛍️
+# shopscrape
 
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Shopify Compatible](https://img.shields.io/badge/Shopify-57--Column%20Import%20Ready-96bf48.svg)](https://help.shopify.com/en/manual/products/import-export/using-csv)
-[![CLI](https://img.shields.io/badge/CLI-shopctl-informational.svg)](#cli-usage)
+[![Shopify Compatibility](https://img.shields.io/badge/Shopify-57--Column%20Import%20Ready-96bf48.svg)](https://help.shopify.com/en/manual/products/import-export/using-csv)
+[![CLI](https://img.shields.io/badge/CLI-shopctl-informational.svg)](#cli-reference)
 
-A high-performance, resilient CLI tool and Python engine designed to extract product catalogs from any public Shopify storefront and export them directly into **100% Shopify-compatible import CSVs (57-column modern template)**, Excel spreadsheets (`.xlsx`), or JSON.
-
----
-
-## ⚡ Highlights
-
-- **Direct Shopify Import Ready**: Outputs strictly formatted CSVs matching Shopify's 57-column product import template byte-for-byte. No re-formatting or manual cleanup required.
-- **Variant & Multi-Image Expansion**: Accurately maps parent products, multiple options (Size/Color/Material), pricing, SKU, barcodes, and multiple product images with exact handle continuations.
-- **Smart Rate Limiting & Backoff**: Built-in exponential backoff, jitter, and automatic `Retry-After` header handling for reliable scraping without getting blocked.
-- **Local SQLite Caching**: Saves scraped catalogs locally so you can filter, transform, re-export, and compare prices without re-scraping.
-- **Price Diff & History Tracking**: Tracks price changes across consecutive runs (`shopctl diff`).
-- **Flexible Data Transforms**: Apply price markups (e.g. +15%), price rounding (e.g. `.99`, `9`, `10`), tag prefixes, vendor overrides, and custom draft statuses during export.
-- **Multi-Format Export**: Generates Shopify 57-column CSVs, classic Shopify legacy CSVs, flat research spreadsheets for Excel/Sheets, and JSON.
+A high-performance CLI utility and Python package to extract product catalogs from public Shopify storefronts and export them directly into Shopify-compatible import CSV files (57-column modern template), Excel spreadsheets (`.xlsx`), or JSON.
 
 ---
 
-## 📦 Installation & Setup
+## Features
+
+- **Shopify 57-Column Import Compatibility**: Generates structured CSVs matching Shopify's modern product import specification byte-for-byte.
+- **Variant and Image Expansion**: Accurately maps product options (Size, Color, Material), prices, SKUs, barcodes, and secondary gallery images via Shopify handle continuations.
+- **Adaptive Rate Limiting & Backoff**: Exponential backoff with jitter and `Retry-After` header support for non-disruptive, polite scraping.
+- **Local SQLite Storage**: Stores extracted catalogs locally to enable fast querying, filtering, transformations, and offline re-exporting.
+- **Price History & Diff Tracking**: Detects price changes between scrape runs across variants (`shopctl diff`).
+- **Data Transformation Pipeline**: Supports custom price multipliers, price rounding rules (`.99`, `9`, `10`), vendor overrides, tag injection, and custom publish states (`Draft` / `Active`).
+- **Multi-Format Export Engine**: Exports to Shopify 57-column CSV, Shopify legacy CSV, flat analytics sheets for Excel, or raw JSON.
+
+---
+
+## Requirements & Installation
 
 Requires **Python 3.10** or newer.
 
@@ -34,21 +34,21 @@ cd shopify-product-scraper
 pip install -r requirements.txt
 ```
 
-*(Optional) Install globally as a CLI utility:*
+To install as a system-wide executable:
 ```bash
 pip install -e .
 ```
 
 ---
 
-## 🚀 Quickstart
+## Quickstart
 
-### 1. Verify configured stores
+### 1. Verify store connectivity
 ```bash
 ./shopctl doctor
 ```
 
-### 2. Scrape stores
+### 2. Scrape storefront catalogs
 ```bash
 # Scrape a single store
 ./shopctl scrape --site bobogears
@@ -59,169 +59,169 @@ pip install -e .
 
 ### 3. Export to CSV
 
-**Export individual CSV files for every store:**
+Export separate CSV files for each store (ready for Shopify import):
 ```bash
 ./shopctl export all --split-by-site --status Draft
 ```
 
-**Export a specific store:**
+Export a specific store:
 ```bash
 ./shopctl export --site bobogears
 ```
 
-Files are automatically generated in the `exports/` directory.
+Files are saved in the `exports/` directory.
 
 To import into Shopify:
-> **Shopify Admin** → **Products** → **Import** → Upload your CSV.
+> **Shopify Admin** -> **Products** -> **Import** -> Upload CSV.
 
 ---
 
-## 🛠️ CLI Reference
+## CLI Reference
 
-### Store Management (`sites`)
+### Site Registry (`sites`)
 
 ```bash
-# List all registered stores and catalog counts
+# List registered stores and cached product counts
 ./shopctl sites list
 
-# Add a new store (validates Shopify compatibility automatically)
-./shopctl sites add mystore.com
+# Register a new store (validates Shopify compatibility)
+./shopctl sites add example.com
 
-# Add store with custom key and collection filters
-./shopctl sites add mystore.com --key mycustom --collection helmets --collection jackets
+# Register store with collection-specific targeting
+./shopctl sites add example.com --key example --collection helmets --collection accessories
 
-# Inspect public collections for a store
+# Inspect collections on a remote store
 ./shopctl sites collections bobogears
 
-# Update store settings or disable a store
-./shopctl sites set bobogears --vendor "Custom Vendor" --add-tag imported
+# Update site parameters
+./shopctl sites set bobogears --vendor "Custom Brand" --add-tag imported
 ./shopctl sites set mototorque --disable
 
-# Remove a store
-./shopctl sites remove mystore.com --purge
+# Unregister a store
+./shopctl sites remove example.com --purge
 ```
 
 ---
 
-### Scraping (`scrape`)
+### Catalog Extraction (`scrape`)
 
 ```bash
 # Scrape all active stores
 ./shopctl scrape all
 
-# Scrape specific stores
+# Scrape selected stores
 ./shopctl scrape --site fleettrack --site bobogears
 
-# Test run with limit and dry-run (no DB write)
+# Test run with sample limit and dry-run mode
 ./shopctl scrape all --limit 10 --dry-run
 ```
 
 ---
 
-### Exporting & Transformations (`export`)
+### Export & Transforms (`export`)
 
-#### 1. Split files per store
+#### Split Files by Store
 ```bash
 ./shopctl export all --split-by-site
 ```
 
-#### 2. Apply price markups & rounding
+#### Price Adjustments & Rounding
 ```bash
-# Apply a 20% markup and round prices to .99
+# Apply a 20% markup and round to .99
 ./shopctl export --site bobogears --markup 1.20 --round-to 0.99
 ```
 
-#### 3. Filtering options
+#### Catalog Filtering
 ```bash
-# Export only in-stock products with images for a specific vendor
+# Export in-stock products with images for a given vendor
 ./shopctl export all --vendor "Bobo" --in-stock --with-images
 
-# Export by price range and search term
+# Filter by price bounds and search term
 ./shopctl export all --query "holder" --min-price 500 --max-price 3000
 ```
 
-#### 4. Research & Excel output
+#### Excel & Business Intelligence Export
 ```bash
 # Export flat one-row-per-variant Excel spreadsheet for market analysis
 ./shopctl export all -p research -f xlsx -o catalog_analysis.xlsx
 ```
 
-#### 5. Image manifest export
+#### High-Resolution Image Manifest
 ```bash
-# Generate flat CSV containing all high-res image URLs
+# Export flat CSV containing all image URLs
 ./shopctl export all --images-manifest
 ```
 
 ---
 
-### Catalog Inspection & Diagnostics
+### Inspection & Diagnostics
 
 ```bash
-# View stored database stats & data quality breakdown
+# View database statistics and data quality metrics
 ./shopctl stats
 
-# Search and inspect details of specific products
-./shopctl inspect "helmet mount"
+# Search and inspect individual product objects
+./shopctl inspect "phone holder"
 
-# View price fluctuations between scrapes
+# Compare price changes between consecutive scrapes
 ./shopctl diff
 
-# Review historical scraping runs
+# Review historical scrape sessions
 ./shopctl runs
 ```
 
 ---
 
-## 📊 Export Column Profiles
+## Export Profiles
 
-| Profile | Target / Use Case | Format Details |
+| Profile | Target | Description |
 |---|---|---|
-| `shopify-import` *(default)* | Modern Shopify Store Import | Exact 57-column schema matching official Shopify product import specification |
-| `shopify-legacy` | Legacy Shopify stores / Apps | 36-column classic Handle/Title layout |
-| `research` | Market research & BI | Flat one-row-per-variant layout with direct URLs, sale flags, and discount % |
+| `shopify-import` *(default)* | Shopify Store Import | 57-column layout complying with Shopify's product import specification |
+| `shopify-legacy` | Legacy Apps & Integrations | 36-column Handle/Title layout |
+| `research` | Spreadsheets & Analysis | Flat one-row-per-variant layout including product URLs, stock flags, and discount percentages |
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
-Configuration is stored in `~/.shopscrape/config.yml`. You can inspect or update settings at any time:
+Settings are stored in `~/.shopscrape/config.yml` and can be adjusted via CLI:
 
 ```bash
-# View configuration
+# Display active settings
 ./shopctl config show
 
-# Adjust request rate limiter delay
+# Set request rate limiter delay (seconds)
 ./shopctl config set delay 1.0
 
-# Set default in-stock inventory count for exported products
+# Set default in-stock inventory quantity
 ./shopctl config set default_qty_in_stock 50
 ```
 
 ---
 
-## 📁 Project Structure
+## Directory Layout
 
 ```text
 shopify-product-scraper/
-├── shopctl                 # Executable CLI launcher
-├── pyproject.toml          # Package build configuration
-├── requirements.txt        # Python dependencies
+├── shopctl                 # CLI entrypoint executable
+├── pyproject.toml          # Project package definitions
+├── requirements.txt        # Runtime dependencies
 └── shopscrape/
-    ├── cli.py              # Click CLI command definitions
-    ├── columns.py          # Shopify & Research column schemas
-    ├── config.py           # YAML config manager & registry
-    ├── detect.py           # Storefront fingerprinting engine
-    ├── exporter.py         # CSV, XLSX, and JSON writers & validator
+    ├── cli.py              # Click command-line interface
+    ├── columns.py          # Export column specifications
+    ├── config.py           # Configuration and registry manager
+    ├── detect.py           # Platform fingerprinting engine
+    ├── exporter.py         # CSV, XLSX, and JSON writers
     ├── fetcher.py          # Rate-limited HTTP client with backoff
-    ├── models.py           # Normalized product and variant models
-    ├── source.py           # Shopify storefront catalog source
-    ├── store.py            # SQLite cache & price history store
-    ├── transform.py        # Rule-based transformers & filters
-    └── ui.py               # Rich terminal formatting & tables
+    ├── models.py           # Normalized product and variant data structures
+    ├── source.py           # Shopify endpoint catalog extractor
+    ├── store.py            # SQLite cache and price history engine
+    ├── transform.py        # Pipeline filters and rules
+    └── ui.py               # Console output and table formatter
 ```
 
 ---
 
-## 📄 License
+## License
 
-Distributed under the MIT License.
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
