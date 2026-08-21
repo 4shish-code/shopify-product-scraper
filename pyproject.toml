@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "shopscrape"
+version = "1.0.0"
+description = "Scrape Shopify storefronts into Shopify-importable CSV"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.31",
+    "click>=8.1",
+    "rich>=13.0",
+    "PyYAML>=6.0",
+    "openpyxl>=3.1",
+]
+
+[project.scripts]
+shopctl = "shopscrape.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["shopscrape*"]

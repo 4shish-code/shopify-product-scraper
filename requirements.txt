@@ -1,0 +1,5 @@
+requests>=2.31
+click>=8.1
+rich>=13.0
+PyYAML>=6.0
+openpyxl>=3.1

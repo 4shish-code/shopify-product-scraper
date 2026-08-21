@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+import sys
+from pathlib import Path
+
+if sys.version_info < (3, 10):
+    sys.exit(
+        f"shopctl requires Python 3.10+ (found {sys.version.split()[0]}).\n"
+        "Please run with a newer Python interpreter: python3 shopctl doctor"
+    )
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+_REQUIRED = {
+    "requests": "requests",
+    "click": "click",
+    "rich": "rich",
+    "yaml": "PyYAML",
+    "openpyxl": "openpyxl",
+}
+
+
+def _preflight():
+    from importlib.util import find_spec
+
+    missing = []
+    for module, package in _REQUIRED.items():
+        try:
+            if find_spec(module) is None:
+                missing.append(package)
+        except (ImportError, ValueError):
+            missing.append(package)
+    if not missing:
+        return
+
+    here = Path(__file__).resolve().parent
+    req = here / "requirements.txt"
+    sys.exit(
+        "\nshopctl cannot start - required packages are not installed:\n"
+        + "".join(f"  - {p}\n" for p in missing)
+        + "\nInstall them and try again:\n\n"
+        + (f"    pip install -r {req}\n" if req.exists()
+           else f"    pip install {' '.join(missing)}\n")
+        + f"\n(If 'pip' is not found, use: {Path(sys.executable).name} -m pip install ...)\n"
+    )
+
+
+_preflight()
+
+from shopscrape.cli import main
+
+if __name__ == "__main__":
+    main()
